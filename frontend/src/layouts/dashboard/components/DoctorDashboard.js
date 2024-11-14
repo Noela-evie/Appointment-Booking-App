@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
-import { AddEventForm } from './AddEventForm';
 
 const DoctorDashboard = () => {
   const [events, setEvents] = useState([]);
@@ -86,7 +85,6 @@ const DoctorDashboard = () => {
           </div>
         )}
       </div>
-      <AddEventForm />
       <div className="cards-container">
         <div className="row">
           <div className="col-md-4">

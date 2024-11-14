@@ -5,20 +5,46 @@ import { userModel } from '../../schemas/user.schema.js';
 
 // 1. Post an appointment
 export const postAppointmentRouteHandler = async (req, res) => {
-    try {
-      const appointment = new appointmentModel(req.body);
-      await appointment.save();
-      res.status(201).json({ message: 'Appointment created successfully' });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Server error' });
-    }
-  };
+  try {
+    const { userId, doctorId } = req.params;
+    const {
+      date,
+      time,
+      patientName,
+      patientPhone,
+      doctorName,
+      doctorPhone,
+      department,
+      reason,
+      status,
+    } = req.body;
+
+    const appointment = new appointmentModel({
+      date,
+      time,
+      patientName,
+      patientPhone,
+      doctorName,
+      doctorPhone,
+      department,
+      reason,
+      status,
+      patient: userId,
+      doctor: doctorId,
+    });
+
+    await appointment.save();
+    res.status(201).json({ message: 'Appointment created successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
   
   // 2. Get an appointment
   export const getAppointmentRouteHandler = async (req, res) => {
     try {
-      const id = ("link unavailable");
+      const id =req.params.appointmentId;
       const appointment = await appointmentModel.findById(id);
       if (!appointment) {
         return res.status(404).json({ message: 'Appointment not found' });
@@ -33,8 +59,8 @@ export const postAppointmentRouteHandler = async (req, res) => {
   // 3. Get all appointments for a given doctor or patient
 export const getAppointmentsRouteHandler = async (req, res) => {
   try {
-    const doctorId = req.query.doctor?._id;
-    const patientId = req.query.user?._id;
+    const doctorId = req.params.id;
+    const patientId = req.params.id;
     const appointments = await appointmentModel.find({
       $or: [{ doctor: doctorId }, { patient: patientId }],
     });
@@ -59,7 +85,20 @@ export const getAppointmentsRouteHandler = async (req, res) => {
   // 5. Post event
   export const postEventRouteHandler = async (req, res) => {
     try {
-      const event = new eventModel(req.body);
+      const doctorId = req.params.doctorId;
+      const {
+        eventName,
+        eventDate,
+        eventTime,
+      } = req.body;
+  
+      const event = new eventModel({
+        eventName,
+        eventDate,
+        eventTime,
+        doctor: doctorId,
+      });
+  
       await event.save();
       res.status(201).json({ message: 'Event created successfully' });
     } catch (error) {
@@ -67,7 +106,7 @@ export const getAppointmentsRouteHandler = async (req, res) => {
       res.status(500).json({ message: 'Server error' });
     }
   };
-  
+
   // 6. Get event for given doctor
   export const getEventRouteHandler = async (req, res) => {
     try {
@@ -180,6 +219,28 @@ export const getAppointmentsRouteHandler = async (req, res) => {
         return res.status(404).json({ message: 'Patient not found' });
       }
       res.json(user);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  };
+
+  // Get all doctors
+  export const getAllDoctorsRouteHandler = async (req, res) => {
+    try {
+      const doctors = await doctorsModel.find();
+      res.json(doctors);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  };
+
+  //Get all Patients
+  export const getAllUsersRouteHandler = async (req, res) => {
+    try {
+      const users = await userModel.find();
+      res.json(users);
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: 'Server error' });

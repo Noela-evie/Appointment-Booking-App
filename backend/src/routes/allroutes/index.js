@@ -1,5 +1,7 @@
 import express from "express";
 import {
+  getAllDoctorsRouteHandler,
+  getAllUsersRouteHandler,
   postAppointmentRouteHandler,
   getAppointmentRouteHandler,
   getAppointmentsRouteHandler,
@@ -19,20 +21,25 @@ import {
 const router = express.Router();
 
 // Appointments
-router.post("/appointments", postAppointmentRouteHandler);
-router.get("/appointments/:id", getAppointmentRouteHandler);
-router.get("/appointments", getAppointmentsRouteHandler);
+router.post("/appointments/:userId/:doctorTd", postAppointmentRouteHandler);
+router.get("/appointments/:appointmentid", getAppointmentRouteHandler);
+router.get("/appointments/:id", getAppointmentsRouteHandler);
 router.get("/appointments/all", getAllAppointmentsRouteHandler);
 
 // Events
-router.post("/events", postEventRouteHandler);
-router.get("/events/:doctorId", getEventRouteHandler);
-router.get("/events", getEventsRouteHandler);
+router.post("/make-event/:doctorId", postEventRouteHandler);
+router.get("/get-an-event/:doctorId", getEventRouteHandler);
+router.get("/get-all-events/:doctorId", getEventsRouteHandler);
 router.delete("/events/:eventId", deleteEventRouteHandler);
 
 // Doctor Profile
 router.get("/doctors/:doctorId/profile", getDoctorProfileRouteHandler);
 router.get("/users/:userId/profile", getUserProfileRouteHandler);
+
+// Admin Routes
+router.get("/admin/doctors", getAllDoctorsRouteHandler);
+router.get("/admin/users", getAllUsersRouteHandler);
+
 
 // Patch Routes
 router.patch("/users/:userId/phone", patchUserPhoneRouteHandler);
