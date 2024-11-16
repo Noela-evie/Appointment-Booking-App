@@ -1,11 +1,7 @@
  // Material Dashboard 2 React layouts
  import Dashboard from "layouts/dashboard";
  import Notifications from "layouts/notifications";
- import Profile from "layouts/profile";
- import Reminders from "layouts/reminders"
- import SignIn from "layouts/authentication/sign-in";
- import SignUp from "layouts/authentication/sign-up";
- 
+ import Profile from "layouts/profile"; 
  import Login from "auth/login";
  import Register from "auth/register";
  import ForgotPassword from "auth/forgot-password";
@@ -38,30 +34,6 @@
      icon: <Icon fontSize="small">person</Icon>,
      route: "/profile",
      component: <Profile />,
-   },
-   {
-    type: "collapse",
-    name: "Reminders",
-    key: "reminders",
-    icon: <Icon fontSize="small">assignment</Icon>,
-    route: "/reminders",
-    component: <Reminders />,
-  },
-   {
-     type: "collapse",
-     name: "Sign In",
-     key: "sign-in",
-     icon: <Icon fontSize="small">login</Icon>,
-     route: "/authentication/sign-in",
-     component: <SignIn />,
-   },
-   {
-     type: "collapse",
-     name: "Sign Up",
-     key: "sign-up",
-     icon: <Icon fontSize="small">assignment</Icon>,
-     route: "/authentication/sign-up",
-     component: <SignUp />,
    },
    {
      type: "auth",

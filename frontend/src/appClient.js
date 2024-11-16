@@ -64,6 +64,22 @@ const adminApi = {
   },
 };
 
+// Notifications
+const notificationApi = {
+  postNotification: async (data) => {
+    const response = await axios.post(`/notifications/`, data);
+    return response.data;
+  },
+  postAppointmentNotification: async (userId, data) => {
+    const response = await axios.post(`/notifications/${userId}`, data);
+    return response.data;
+  },
+  getNotifications: async (userId) => {
+    const response = await axios.get(`/notifications/${userId}`);
+    return response.data;
+  },
+};
+
 // Patch Routes
 const patchApi = {
   patchUserPhone: async (userId, phone) => {
@@ -84,4 +100,5 @@ const patchApi = {
   },
 };
 
-export { appointmentApi, eventApi, profileApi, adminApi, patchApi };
+
+export { appointmentApi, eventApi, profileApi, adminApi, patchApi, notificationApi };

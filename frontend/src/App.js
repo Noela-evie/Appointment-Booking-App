@@ -33,20 +33,23 @@ import { useMaterialUIController, setMiniSidenav } from "context";
 import brandWhite from "assets/images/logo-ct.png";
 import brandDark from "assets/images/logo-ct-dark.png";
 
-import { setupAxiosInterceptors } from "./services/interceptor";
-import ProtectedRoute from "examples/ProtectedRoute";
+// Auth-related components
+import { AuthContext } from "context";
+import Dashboard from "layouts/dashboard";
 import ForgotPassword from "auth/forgot-password";
 import ResetPassword from "auth/reset-password";
 import Login from "auth/login";
 import Register from "auth/register";
-import { AuthContext } from "context";
-import Dashboard from "layouts/dashboard";
+import Home from "layouts/home/index"
+
+// Services
+import { setupAxiosInterceptors } from "./services/interceptor";
+import ProtectedRoute from "examples/ProtectedRoute";
 
 export default function App() {
   const authContext = useContext(AuthContext);
   const navigate = useNavigate();
   const { pathname } = useLocation();
-
 
   const [controller, dispatch] = useMaterialUIController();
   const {
@@ -58,16 +61,15 @@ export default function App() {
     whiteSidenav,
     darkMode,
   } = controller;
+
   const [onMouseEnter, setOnMouseEnter] = useState(false);
   const [rtlCache, setRtlCache] = useState(null);
-
   const [isDemo, setIsDemo] = useState(false);
 
   useEffect(() => {
     setIsDemo(process.env.REACT_APP_IS_DEMO === "true");
   }, []);
 
-  // Cache for the rtl
   useMemo(() => {
     const cacheRtl = createCache({
       key: "rtl",
@@ -77,7 +79,7 @@ export default function App() {
     setRtlCache(cacheRtl);
   }, []);
 
-  // Open sidenav when mouse enter on mini sidenav
+  // Cache for the rtl
   const handleOnMouseEnter = () => {
     if (miniSidenav && !onMouseEnter) {
       setMiniSidenav(dispatch, false);
@@ -93,9 +95,7 @@ export default function App() {
     }
   };
 
-
   // if the token expired or other errors it logs out and goes to the login page
-
   setupAxiosInterceptors(() => {
     authContext.logout();
     navigate("/auth/login");
@@ -135,7 +135,6 @@ export default function App() {
       return null;
     });
 
-
   return (
     <>
       {direction === "rtl" ? (
@@ -152,22 +151,25 @@ export default function App() {
                   onMouseEnter={handleOnMouseEnter}
                   onMouseLeave={handleOnMouseLeave}
                 />
-               
               </>
             )}
             <Routes>
-              <Route path="login" element={<Navigate to="/auth/login" />} />
-              <Route path="register" element={<Navigate to="/auth/register" />} />
-              <Route path="forgot-password" element={<Navigate to="/auth/forgot-password" />} />
+              {/* Default Home route (unprotected) */}
+              <Route path="/" element={<Home />} /> 
+
+              <Route path="login" element={<Login />} />
+              <Route path="register" element={<Register />} />
+              <Route path="forgot-password" element={<ForgotPassword />} />
+              <Route path="reset-password" element={<ResetPassword />} />
               {getRoutes(routes)}
-              <Route path="*" element={<Navigate to="/dashboard" />} />
+              <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </ThemeProvider>
         </CacheProvider>
       ) : (
         <ThemeProvider theme={darkMode ? themeDark : theme}>
           <CssBaseline />
-          {layout === "dashboard" && (
+          {pathname !== "/" && layout === "dashboard" &&  (
             <>
               <Sidenav
                 color={sidenavColor}
@@ -177,17 +179,19 @@ export default function App() {
                 onMouseEnter={handleOnMouseEnter}
                 onMouseLeave={handleOnMouseLeave}
               />
-  
             </>
           )}
           <Routes>
+            {/* Default Home route (unprotected) */}
+            <Route path="/" element={<Home />} />
+
             <Route path="/auth/login" element={<Login />} />
             <Route path="/auth/register" element={<Register />} />
             <Route path="/auth/forgot-password" element={<ForgotPassword />} />
             <Route path="/auth/reset-password" element={<ResetPassword />} />
             <Route
               exact
-              path="dashboard"
+              path="/dashboard"
               element={
                 <ProtectedRoute isAuthenticated={authContext.isAuthenticated}>
                   <Dashboard />
@@ -195,9 +199,8 @@ export default function App() {
               }
               key="user-profile"
             />
-
             {getRoutes(routes)}
-            <Route path="*" element={<Navigate to="/dashboard" />} />
+            <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </ThemeProvider>
       )}

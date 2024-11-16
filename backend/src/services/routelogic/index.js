@@ -2,6 +2,8 @@ import { appointmentModel } from '../../schemas/appointments.schema.js';
 import { eventModel } from '../../schemas/events.schema.js';
 import { doctorsModel } from '../../schemas/doctors.schema.js';
 import { userModel } from '../../schemas/user.schema.js';
+import { notificationModel } from '../../schemas/notifications.schema.js';
+
 
 // 1. Post an appointment
 export const postAppointmentRouteHandler = async (req, res) => {
@@ -246,3 +248,54 @@ export const getAppointmentsRouteHandler = async (req, res) => {
       res.status(500).json({ message: 'Server error' });
     }
   };
+
+  // 15. Post notification
+export const postUpdateNotificationRouteHandler = async (req, res) => {
+  try {
+
+    const { type, message, doctor, patient } = req.body;
+    const notification = new notificationModel({
+      type,
+      message,
+      doctor,
+      patient,
+    });
+    await notification.save();
+    res.status(201).json({ message: 'Notification created successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const postAppointmentNotificationRouteHandler = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const { type, appointment, doctor, patient, message } = req.body;
+    const notification = new notificationModel({
+      type,
+      appointment,
+      doctor,
+      patient,
+      message,
+    });
+    await notification.save();
+    res.status(201).json({ message: 'Notification created successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+
+// 16. Get notifications for a user
+export const getNotificationsRouteHandler = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const notifications = await notificationModel.find({ patient: userId });
+    res.json(notifications);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};

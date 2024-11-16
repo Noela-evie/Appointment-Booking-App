@@ -16,6 +16,10 @@ import {
   patchDoctorPhoneRouteHandler,
   patchAppointmentStatusRouteHandler,
   patchAppointmentStatusToSuccessfulRouteHandler,
+  postUpdateNotificationRouteHandler,
+  postAppointmentNotificationRouteHandler,
+  getNotificationsRouteHandler,
+
 } from "../../services/routelogic/index.js";
 
 const router = express.Router();
@@ -39,6 +43,11 @@ router.get("/users/:userId/profile", getUserProfileRouteHandler);
 // Admin Routes
 router.get("/admin/doctors", getAllDoctorsRouteHandler);
 router.get("/admin/users", getAllUsersRouteHandler);
+
+// Notifications
+router.post("/notifications", postUpdateNotificationRouteHandler);
+router.post("/notifications/:userId", postAppointmentNotificationRouteHandler);
+router.get("/notifications/:userId", getNotificationsRouteHandler);
 
 
 // Patch Routes
