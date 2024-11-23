@@ -5,58 +5,50 @@ import { userModel } from '../../schemas/user.schema.js';
 import { notificationModel } from '../../schemas/notifications.schema.js';
 
 
-// 1. Post an appointment
+// 1. postAppointmentRouteHandler
 export const postAppointmentRouteHandler = async (req, res) => {
   try {
-    const { userId, doctorId } = req.params;
-    const {
-      date,
-      time,
-      patientName,
-      patientPhone,
-      doctorName,
-      doctorPhone,
-      department,
-      reason,
-      status,
-    } = req.body;
+    const doctorId = req.params.doctorId;
+    const userId = req.params.userId;
+    const appointmentData = req.body;
 
-    const appointment = new appointmentModel({
-      date,
-      time,
-      patientName,
-      patientPhone,
-      doctorName,
-      doctorPhone,
-      department,
-      reason,
-      status,
-      patient: userId,
-      doctor: doctorId,
-    });
+    // Get doctor and patient details
+    const doctor = await doctorsModel.findById(doctorId);
+    const patient = await userModel.findById(userId);
 
+    if (!doctor) {
+      return res.status(404).json({ message: 'Doctor not found' });
+    }
+
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+
+    // Check if time slot is available
+    const availability = doctor.availability.find((availability) => availability.date === appointmentData.date);
+    if (availability && availability.timeSlots.includes(appointmentData.time)) {
+      return res.status(400).json({ message: 'This time slot is occupied. Choose another date or time.' });
+    }
+
+    // Create appointment
+    const appointment = new appointmentModel(appointmentData);
     await appointment.save();
+
+    // Add booked time slot to doctor's availability
+    if (availability) {
+      availability.timeSlots.push(appointmentData.time);
+    } else {
+      doctor.availability.push({ date: appointmentData.date, timeSlots: [appointmentData.time] });
+    }
+    await doctor.save();
+
     res.status(201).json({ message: 'Appointment created successfully' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
   }
 };
-  
-  // 2. Get an appointment
-  export const getAppointmentRouteHandler = async (req, res) => {
-    try {
-      const id =req.params.appointmentId;
-      const appointment = await appointmentModel.findById(id);
-      if (!appointment) {
-        return res.status(404).json({ message: 'Appointment not found' });
-      }
-      res.json(appointment);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Server error' });
-    }
-  };
+
   
   // 3. Get all appointments for a given doctor or patient
 export const getAppointmentsRouteHandler = async (req, res) => {
@@ -85,29 +77,43 @@ export const getAppointmentsRouteHandler = async (req, res) => {
   };
   
   // 5. Post event
-  export const postEventRouteHandler = async (req, res) => {
-    try {
-      const doctorId = req.params.doctorId;
-      const {
-        eventName,
-        eventDate,
-        eventTime,
-      } = req.body;
-  
-      const event = new eventModel({
-        eventName,
-        eventDate,
-        eventTime,
-        doctor: doctorId,
-      });
-  
-      await event.save();
-      res.status(201).json({ message: 'Event created successfully' });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Server error' });
+export const postEventRouteHandler = async (req, res) => {
+  try {
+    const doctorId = req.params.doctorId;
+    const { eventName, eventDate, eventTime } = req.body;
+
+    // Get doctor details
+    const doctor = await doctorsModel.findById(doctorId);
+
+    if (!doctor) {
+      return res.status(404).json({ message: 'Doctor not found' });
     }
-  };
+
+    // Check if time slot is available
+    const availability = doctor.availability.find((availability) => availability.date === eventDate);
+    if (availability && availability.timeSlots.includes(eventTime)) {
+      return res.status(400).json({ message: 'This time slot is occupied. Choose another date or time.' });
+    }
+
+    // Create event
+    const event = new eventModel({ eventName, eventDate: eventDate.split('T')[0], eventTime, doctor: doctorId });
+    await event.save();
+
+    // Add booked time slot to doctor's availability
+    if (availability) {
+      availability.timeSlots.push(eventTime);
+    } else {
+      doctor.availability.push({ date: eventDate, timeSlots: [eventTime] });
+    }
+    await doctor.save();
+
+    res.status(201).json({ message: 'Event created successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 
   // 6. Get event for given doctor
   export const getEventRouteHandler = async (req, res) => {
@@ -127,8 +133,11 @@ export const getAppointmentsRouteHandler = async (req, res) => {
   // 7. Get all events for a given doctor
   export const getEventsRouteHandler = async (req, res) => {
     try {
-      const doctorId = req.query.doctorId;
+      const doctorId = req.params.doctorId;
       const events = await eventModel.find({ doctor: doctorId });
+      if (!events) {
+        return res.status(404).json({ message: 'No Events' });
+      }
       res.json(events);
     } catch (error) {
       console.error(error);
@@ -137,16 +146,31 @@ export const getAppointmentsRouteHandler = async (req, res) => {
   };
   
   // 8. Delete event for a given doctor
-  export const deleteEventRouteHandler = async (req, res) => {
-    try {
-      const eventId = req.params.eventId;
-      await eventModel.findByIdAndDelete(eventId);
-      res.status(204).json({ message: 'Event deleted successfully' });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Server error' });
+export const deleteEventRouteHandler = async (req, res) => {
+  try {
+    const eventId = req.params.eventId;
+    const event = await eventModel.findById(eventId);
+
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
     }
-  };
+
+    // Remove time slot from doctor's availability
+    const doctor = await doctorsModel.findById(event.doctor);
+const availability = doctor.availability.find((availability) => availability.date === event.eventDate);
+
+if (availability) {
+  availability.timeSlots = availability.timeSlots.filter((timeSlot) => timeSlot !== event.eventTime);
+  await doctor.save();
+}
+
+    await eventModel.findByIdAndDelete(eventId);
+    res.status(204).json({ message: 'Event deleted successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
   
   // 9. Get all doctor data for profile
   export const getDoctorProfileRouteHandler = async (req, res) => {
@@ -188,17 +212,38 @@ export const getAppointmentsRouteHandler = async (req, res) => {
     }
     };
     
-    // 12. Patch status when appointment is cancelled
     export const patchAppointmentStatusRouteHandler = async (req, res) => {
-    try {
-    const appointmentId = req.params.appointmentId;
-    await appointmentModel.updateOne({ _id: appointmentId }, { $set: { status: 'cancelled' } });
-    res.status(200).json({ message: 'Appointment status updated successfully' });
-    } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
-    }
+      try {
+        const appointmentId = req.params.appointmentId;
+        const appointment = await appointmentModel.findById(appointmentId);
+    
+        if (!appointment) {
+          return res.status(404).json({ message: 'Appointment not found' });
+        }
+    
+        const doctorId = appointment.doctor;
+        const date = appointment.date;
+        const time = appointment.time;
+    
+        await appointmentModel.updateOne({ _id: appointmentId }, { $set: { status: 'cancelled' } });
+    
+        // Remove time slot from doctor's availability
+        const doctor = await doctorsModel.findById(doctorId);
+        const availability = doctor.availability.find((availability) => availability.date === date);
+    
+        if (availability) {
+          availability.timeSlots = availability.timeSlots.filter((timeSlot) => timeSlot !== time);
+          await doctor.save();
+        }
+    
+        res.status(200).json({ message: 'Appointment status updated successfully' });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+      }
     };
+
+
     
     // 13. Patch status to successful when appointment date passes
     export const patchAppointmentStatusToSuccessfulRouteHandler = async (req, res) => {
@@ -280,10 +325,10 @@ export const postAppointmentNotificationRouteHandler = async (req, res) => {
       message,
     });
     await notification.save();
-    res.status(201).json({ message: 'Notification created successfully' });
+    res.status(201).json({ message: "Notification created successfully" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -292,8 +337,54 @@ export const postAppointmentNotificationRouteHandler = async (req, res) => {
 export const getNotificationsRouteHandler = async (req, res) => {
   try {
     const userId = req.params.userId;
-    const notifications = await notificationModel.find({ patient: userId });
+    const notifications = await notificationModel.find({
+      $or: [{ doctor: userId }, { patient: userId }],
+    });
     res.json(notifications);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// 17. Update notification read status
+export const updateNotificationReadStatusRouteHandler = async (req, res) => {
+  try {
+    const notificationId = req.params.notificationId;
+    const notification = await notificationModel.findById(notificationId);
+    if (!notification) {
+      return res.status(404).json({ message: 'Notification not found' });
+    }
+    notification.readStatus = true;
+    await notification.save();
+    res.status(200).json({ message: 'Notification marked as read' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// 18. Get doctor availability
+export const getDoctorAvailabilityRouteHandler = async (req, res) => {
+  try {
+    const { department, date, time } = req.query;
+    const doctors = await doctorsModel.find({ department });
+
+    const availableDoctors = [];
+    for (const doctor of doctors) {
+      const availability = doctor.availability.find((availability) => availability.date === date);
+      if (!availability) {
+        availableDoctors.push({ _id: doctor._id, name: doctor.name, phone: doctor.phone, availableTimeSlots: [time] });
+      } else if (!availability.timeSlots.includes(time)) {
+        availableDoctors.push({ _id: doctor._id, name: doctor.name, phone: doctor.phone, availableTimeSlots: availability.timeSlots });
+      }
+    }
+
+    if (availableDoctors.length === 0) {
+      return res.status(400).json({ message: 'No doctors available at the selected time.' });
+    }
+
+    res.json(availableDoctors);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });

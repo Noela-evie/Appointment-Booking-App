@@ -51,11 +51,11 @@ const AuthContextProvider = ({ children }) => {
       localStorage.setItem("id", id); 
       setRole(role);
       setIsAuthenticated(true);
-      console.log("Login successful. Redirecting to dashboard...");
       navigate("/dashboard");
       return data;
     } catch (error) {
       console.error("Login error:", error);
+      throw error;
     }
   };
 

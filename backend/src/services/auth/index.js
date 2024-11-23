@@ -50,7 +50,6 @@ const patientLogin = async (patient, password, res) => {
 };
 
 export const loginRouteHandler = async (req, res) => {
-  console.log("Incoming Request:", req.body); 
   try {
     const { NIN, password } = req.body;
     

@@ -3,7 +3,6 @@ import {
   getAllDoctorsRouteHandler,
   getAllUsersRouteHandler,
   postAppointmentRouteHandler,
-  getAppointmentRouteHandler,
   getAppointmentsRouteHandler,
   getAllAppointmentsRouteHandler,
   postEventRouteHandler,
@@ -19,16 +18,18 @@ import {
   postUpdateNotificationRouteHandler,
   postAppointmentNotificationRouteHandler,
   getNotificationsRouteHandler,
+  updateNotificationReadStatusRouteHandler,
+  getDoctorAvailabilityRouteHandler,
 
 } from "../../services/routelogic/index.js";
 
 const router = express.Router();
 
 // Appointments
-router.post("/appointments/:userId/:doctorTd", postAppointmentRouteHandler);
-router.get("/appointments/:appointmentid", getAppointmentRouteHandler);
-router.get("/appointments/:id", getAppointmentsRouteHandler);
+router.post("/appointments/:doctorId/:userId", postAppointmentRouteHandler);
+router.get("/alluserappointments/:id", getAppointmentsRouteHandler);
 router.get("/appointments/all", getAllAppointmentsRouteHandler);
+router.get("/doctors/availability", getDoctorAvailabilityRouteHandler);
 
 // Events
 router.post("/make-event/:doctorId", postEventRouteHandler);
@@ -48,6 +49,7 @@ router.get("/admin/users", getAllUsersRouteHandler);
 router.post("/notifications", postUpdateNotificationRouteHandler);
 router.post("/notifications/:userId", postAppointmentNotificationRouteHandler);
 router.get("/notifications/:userId", getNotificationsRouteHandler);
+router.patch("/notifications/:notificationId/read", updateNotificationReadStatusRouteHandler);
 
 
 // Patch Routes

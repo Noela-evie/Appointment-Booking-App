@@ -70,20 +70,17 @@ function Login() {
       NIN: inputs.NIN,
       password: inputs.password
     }
+    try {
+      const response = await authContext.login(loginData);
+    } catch (error) {
+      if (error.message) {
+        setCredentialsError("Invalid credentials");
+      }
+      setInputs({ NIN: "", password: "", });
+      setErrors({ NINError: false, passwordError: false, });
+    }
+  };
 
-try {
-  const response = await authContext.login(loginData);
-  console.log("Response:", response);
-} catch (res) {
-  if (res.hasOwnProperty("message")) {
-    setCredentialsError(res.message);
-  } else {
-    setCredentialsError(res.errors[0].detail);
-    setInputs({ NIN: "", password: "", });
-    setErrors({ NINError: false, passwordError: false, });
-  }
-}
-  }
 
   return (
     <BasicLayoutLanding image={bgImage}>
@@ -129,6 +126,11 @@ try {
                 onChange={changeHandler}
                 error={errors.NINError}
               />
+              {errors.NINError && (
+    <MDTypography variant="caption" color="error" fontWeight="light">
+      NIN must be at least 14 characters.
+    </MDTypography>
+  )}
             </MDBox>
             
             <MDBox mb={2}>
@@ -141,6 +143,11 @@ try {
                 onChange={changeHandler}
                 error={errors.passwordError}
               />
+              {errors.passwordError && (
+    <MDTypography variant="caption" color="error" fontWeight="light">
+      Password must be at least 8 characters.
+    </MDTypography>
+  )}
               <MDBox mb={2}>
   
   <MDBox display="flex" alignItems="center" ml={-1} mt={1}>
@@ -174,11 +181,7 @@ try {
                 sign in
               </MDButton>
             </MDBox>
-            {credentialsErrors && (
-              <MDTypography variant="caption" color="error" fontWeight="light">
-                {credentialsErrors}
-              </MDTypography>
-            )}
+          
             <MDBox mt={3} mb={1} textAlign="center">
               <MDTypography variant="button" color="text">
                 Forgot your password?{" "}
@@ -194,6 +197,11 @@ try {
                 </MDTypography>
               </MDTypography>
             </MDBox>
+            {credentialsErrors && (
+  <MDTypography variant="caption" color="error" fontWeight="light">
+    {credentialsErrors}
+  </MDTypography>
+)}
             <MDBox mb={1} textAlign="center">
               <MDTypography variant="button" color="text">
                 Don&apos;t have an account?{" "}

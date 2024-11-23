@@ -2,15 +2,22 @@ import axios from 'axios';
 
 // Appointments
 const appointmentApi = {
-  postAppointment: async (userId, doctorId, data) => {
-    const response = await axios.post(`/appointments/${userId}/${doctorId}`, data);
+  postAppointment: async (doctorId, userId, data) => {
+    const response = await axios.post(`/appointments/${doctorId}/${userId}`, data);
     return response.data;
   },
-  getAppointment: async (appointmentId) => {
-    const response = await axios.get(`/appointments/${appointmentId}`);
+  getuserAppointments: async (id) => {
+    const role = localStorage.getItem("role");
+    let doctorId, patientId;
+    if (role === "doctor") {
+      doctorId = id;
+    } else {
+      patientId = id;
+    }
+    const response = await axios.get(`/alluserappointments/${role === "doctor" ? doctorId : patientId}`);
     return response.data;
   },
-  getAppointments: async (id) => {
+  getAppointment: async (id) => {
     const response = await axios.get(`/appointments/${id}`);
     return response.data;
   },
@@ -18,12 +25,25 @@ const appointmentApi = {
     const response = await axios.get('/appointments/all');
     return response.data;
   },
+  getDoctorAvailability: async (department, date, time) => {
+    const response = await axios.get('/doctors/availability', {
+      params: {
+        department,
+        date,
+        time,
+      },
+    });
+    return response.data;
+  },
 };
-
 // Events
 const eventApi = {
   postEvent: async (doctorId, data) => {
-    const response = await axios.post(`/make-event/${doctorId}`, data);
+    const response = await axios.post(`/make-event/${doctorId}`, {
+      eventName: data.eventName,
+      eventDate: data.eventDate,
+      eventTime: data.eventTime,
+    });
     return response.data;
   },
   getEvent: async (doctorId) => {
@@ -75,7 +95,23 @@ const notificationApi = {
     return response.data;
   },
   getNotifications: async (userId) => {
-    const response = await axios.get(`/notifications/${userId}`);
+    const role = localStorage.getItem("role");
+    if (role === "admin") {
+      return [];
+    } else {
+      let doctorId, patientId;
+      if (role === "doctor") {
+        doctorId = userId;
+      } else {
+        patientId = userId;
+      }
+      console.log(`Doctor: ${doctorId}`)
+      const response = await axios.get(`/notifications/${role === "doctor" ? doctorId : patientId}`);
+      return response.data;
+    }
+  },
+  markNotificationAsRead: async (notificationId) => {
+    const response = await axios.patch(`/notifications/${notificationId}/read`);
     return response.data;
   },
 };
