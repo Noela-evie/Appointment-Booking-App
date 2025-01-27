@@ -3,15 +3,16 @@ import PropTypes from "prop-types";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 
+
 const MaterialUI = createContext();
 
 // Initial state for AuthContext
 const initialState = {
   isAuthenticated: false,
   role: null,
-  login: () => { },
-  logout: () => { },
-  register: () => { },
+  login: () => {},
+  logout: () => {},
+  register: () => {},
 };
 
 // Creating AuthContext
@@ -30,18 +31,20 @@ const AuthContextProvider = ({ children }) => {
 
   useEffect(() => {
     const verifyToken = async () => {
-      try {
-        const response = await axios.post("/verify-token", { token });
-        if (response.data.isValid) {
-          setIsAuthenticated(true);
-        } else {
-          setIsAuthenticated(false);
-          localStorage.removeItem("token");
-          localStorage.removeItem("role");
-          navigate("/auth/login");
+      if (token) {
+        try {
+          const response = await axios.post("/verify-token", { token });
+          if (response.data.isValid) {
+            setIsAuthenticated(true);
+          } else {
+            setIsAuthenticated(false);
+            localStorage.removeItem("token");
+            localStorage.removeItem("role");
+            navigate("/auth/login");
+          }
+        } catch (error) {
+          console.error(error);
         }
-      } catch (error) {
-        console.error(error);
       }
     };
     verifyToken();
@@ -51,9 +54,10 @@ const AuthContextProvider = ({ children }) => {
     try {
       const response = await axios.post('/login', loginData);
       const data = response.data;
-      const { token, role, id } = data;
+      const { token, role, id } = data; 
       localStorage.setItem("token", token);
       localStorage.setItem("role", role);
+      localStorage.setItem("id", id); 
       setRole(role);
       setIsAuthenticated(true);
       navigate("/dashboard");
@@ -75,20 +79,20 @@ const AuthContextProvider = ({ children }) => {
 
   // Register function for initial registration (sets role as "patient" by default)
   const register = async (registerData) => {
-    try {
-      const response = await axios.post('/register', registerData);
-      const token = response.data;
-      const role = "patient";
-      localStorage.setItem("token", token);
-      localStorage.setItem("role", role);
-      setRole(role);
-      setIsAuthenticated(true);
-      console.log("Registration successful. Redirecting to dashboard...");
-      navigate("/auth/login");
-    } catch (error) {
-      console.error("Registration error:", error);
-    }
-  };
+  try {
+    const response = await axios.post('/register', registerData);
+    const token = response.data;
+    const role = "patient";
+    localStorage.setItem("token", token);
+    localStorage.setItem("role", role);
+    setRole(role);
+    setIsAuthenticated(true);
+    console.log("Registration successful. Redirecting to dashboard...");
+    navigate("/auth/login");
+  } catch (error) {
+    console.error("Registration error:", error);
+  }
+};
 
   // Memoize the context value to avoid unnecessary re-renders
   const value = useMemo(() => ({
@@ -119,9 +123,19 @@ export const useAuth = () => {
       "useAuth should be used inside the AuthContextProvider."
     );
   }
+
   const { role, isAuthenticated, login, logout, register } = context;
-  return { role, isAuthenticated, login, logout, register, };
+  
+  return {
+    role,
+    isAuthenticated,
+    login,
+    logout,
+    register,
+  };
 };
+
+export default AuthContextProvider;
 
 
 // Setting custom name for the context which is visible on react dev tools
@@ -233,4 +247,3 @@ export {
   setLayout,
   setDarkMode,
 };
-
