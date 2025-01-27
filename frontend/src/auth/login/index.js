@@ -164,39 +164,13 @@ function Login() {
   </MDBox>
 </MDBox>
             </MDBox>
-            <MDBox display="flex" alignItems="center" ml={-1}>
-              <Switch checked={rememberMe} onChange={handleSetRememberMe} />
-              <MDTypography
-                variant="button"
-                fontWeight="regular"
-                color="text"
-                onClick={handleSetRememberMe}
-                sx={{ cursor: "pointer", userSelect: "none", ml: -1 }}
-              >
-                &nbsp;&nbsp;Remember me
-              </MDTypography>
-            </MDBox>
+            
             <MDBox mt={4} mb={1}>
               <MDButton variant="gradient" color="info" fullWidth type="submit">
                 sign in
               </MDButton>
             </MDBox>
           
-            <MDBox mt={3} mb={1} textAlign="center">
-              <MDTypography variant="button" color="text">
-                Forgot your password?{" "}
-                <MDTypography
-                  component={Link}
-                  to="/auth/forgot-password"
-                  variant="button"
-                  color="info"
-                  fontWeight="medium"
-                  textGradient
-                >
-                  here
-                </MDTypography>
-              </MDTypography>
-            </MDBox>
             {credentialsErrors && (
   <MDTypography variant="caption" color="error" fontWeight="light">
     {credentialsErrors}

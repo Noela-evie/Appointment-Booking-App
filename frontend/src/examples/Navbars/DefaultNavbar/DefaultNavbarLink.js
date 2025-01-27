@@ -24,7 +24,7 @@ function DefaultNavbarLink({ icon, name, route, light }) {
     >
       <Icon
         sx={{
-          color: ({ palette: { white, secondary } }) => (light ? white.main : secondary.main),
+          color: "dark",
           verticalAlign: "middle",
         }}
       >
@@ -33,7 +33,7 @@ function DefaultNavbarLink({ icon, name, route, light }) {
       <MDTypography
         variant="button"
         fontWeight="regular"
-        color={light ? "white" : "dark"}
+        color="dark"
         textTransform="capitalize"
         sx={{ width: "100%", lineHeight: 0 }}
       >

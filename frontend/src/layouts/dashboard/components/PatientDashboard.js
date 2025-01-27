@@ -3,6 +3,8 @@ import { appointmentApi, profileApi, patchApi, notificationApi } from '../../../
 import { FaUserMd, FaCalendarAlt, FaInfoCircle, FaClock, FaPhone } from 'react-icons/fa';
 import appointmentsBg from '../../../assets/images/appointmentsBg.jpg';
 import bookAppointmentBg from '../../../assets/images/appointmentSection.jpg';
+import { Link } from "react-router-dom";
+
 
 const PatientDashboard = () => {
   const userId = localStorage.getItem('id');
@@ -114,18 +116,24 @@ const handleCancelAppointment = async (appointmentId) => {
     <div className="container mx-auto py-6 px-4 animate_fadeIn">
       {/* Book Appointment Form */}
       <div className="relative bg-white rounded-lg shadow-lg overflow-hidden mb-8">
-        {/* Top Section with Image */}
-        <div
-          className="absolute inset-0 w-full h-48 md:h-60 bg-cover bg-center"
-          style={{ backgroundImage: `url(${bookAppointmentBg})` }}
-        >
-          <div className="absolute inset-0 bg-black opacity-40"></div>
-          <h2 className="absolute left-6 bottom-4 text-4xl md:text-5xl font-bold text-white z-10">
-            Book Your Appointment
-          </h2>
-        </div>
+  {/* Top Section with Image */}
+  <div className="absolute inset-0 w-full h-48 md:h-60 bg-cover bg-center" style={{ backgroundImage: `url(${bookAppointmentBg})` }} >
+    <div className="absolute inset-0 bg-black opacity-40"></div>
+    <h2 className="absolute left-6 bottom-4 text-4xl md:text-5xl font-bold text-white z-10"> Book Your Appointment </h2>
+  </div>
         {/* Form Section */}
         <div className="pt-56 md:pt-72 px-6 md:px-12 pb-8">
+        {appointments.filter(appointment => appointment.status === "upcoming").length === 0 && (
+  <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded relative mb-4">
+    <h2 className="text-lg font-bold">Welcome {name},</h2>
+    <p className="text-lg">To book an appointment, please ensure your phone number is updated in your profile.  
+      <Link to="/profile" className="text-purple-800 hover:text-black">
+         CLICK HERE
+      </Link> 
+       to update your phone number.
+    </p>
+  </div>
+)}
           <form className="space-y-6" onSubmit={handleBookAppointment}>
             <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
               <div>
@@ -188,16 +196,15 @@ const handleCancelAppointment = async (appointmentId) => {
               />
             </div>
           </div>
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition duration-200"
-            disabled={loading}
-          >
-            {loading ? "Booking..." : "Book Appointment"}
-          </button>
-        </form>
-      </div>
-    </div>
+          <button type="submit" className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition duration-200" disabled={loading} >
+        {loading ? "Booking..." : "Book Appointment"}
+      </button>
+      {loading === false && (
+        <p className="text-center text-lg text-gray-600 mt-4">After booking, check your notifications for doctor's contact details.</p>
+      )}
+    </form>
+  </div>
+</div>
     {/* Appointments */}
     <div className="md:col-span-2 relative bg-white rounded-lg shadow-lg p-6 overflow-hidden mb-8">
   <img src={appointmentsBg} alt="Appointments Background" className="absolute inset-0 w-full h-full object-cover opacity-10 pointer-events-none" />

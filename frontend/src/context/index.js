@@ -9,9 +9,9 @@ const MaterialUI = createContext();
 const initialState = {
   isAuthenticated: false,
   role: null,
-  login: () => {},
-  logout: () => {},
-  register: () => {},
+  login: () => { },
+  logout: () => { },
+  register: () => { },
 };
 
 // Creating AuthContext
@@ -19,36 +19,41 @@ export const AuthContext = createContext(initialState);
 
 // AuthContextProvider to manage and provide authentication state
 const AuthContextProvider = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    const token = localStorage.getItem("token");
+    return token !== null;
+  });
   const [role, setRole] = useState(() => localStorage.getItem("role") || null);
-
   const navigate = useNavigate();
   const location = useLocation();
   const token = localStorage.getItem("token");
 
-  // Check authentication status on initial render and update state accordingly
   useEffect(() => {
-    if (token) {
-      setIsAuthenticated(true);
-      navigate(location.pathname);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (token) {
-      setIsAuthenticated(isAuthenticated);
-      navigate(location.pathname);
-    }
-  }, [isAuthenticated]);
+    const verifyToken = async () => {
+      try {
+        const response = await axios.post("/verify-token", { token });
+        if (response.data.isValid) {
+          setIsAuthenticated(true);
+        } else {
+          setIsAuthenticated(false);
+          localStorage.removeItem("token");
+          localStorage.removeItem("role");
+          navigate("/auth/login");
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    verifyToken();
+  }, [token, navigate]);
 
   const login = async (loginData) => {
     try {
       const response = await axios.post('/login', loginData);
       const data = response.data;
-      const { token, role, id } = data; 
+      const { token, role, id } = data;
       localStorage.setItem("token", token);
       localStorage.setItem("role", role);
-      localStorage.setItem("id", id); 
       setRole(role);
       setIsAuthenticated(true);
       navigate("/dashboard");
@@ -70,20 +75,20 @@ const AuthContextProvider = ({ children }) => {
 
   // Register function for initial registration (sets role as "patient" by default)
   const register = async (registerData) => {
-  try {
-    const response = await axios.post('/register', registerData);
-    const token = response.data;
-    const role = "patient";
-    localStorage.setItem("token", token);
-    localStorage.setItem("role", role);
-    setRole(role);
-    setIsAuthenticated(true);
-    console.log("Registration successful. Redirecting to dashboard...");
-    navigate("/auth/login");
-  } catch (error) {
-    console.error("Registration error:", error);
-  }
-};
+    try {
+      const response = await axios.post('/register', registerData);
+      const token = response.data;
+      const role = "patient";
+      localStorage.setItem("token", token);
+      localStorage.setItem("role", role);
+      setRole(role);
+      setIsAuthenticated(true);
+      console.log("Registration successful. Redirecting to dashboard...");
+      navigate("/auth/login");
+    } catch (error) {
+      console.error("Registration error:", error);
+    }
+  };
 
   // Memoize the context value to avoid unnecessary re-renders
   const value = useMemo(() => ({
@@ -114,19 +119,9 @@ export const useAuth = () => {
       "useAuth should be used inside the AuthContextProvider."
     );
   }
-
   const { role, isAuthenticated, login, logout, register } = context;
-  
-  return {
-    role,
-    isAuthenticated,
-    login,
-    logout,
-    register,
-  };
+  return { role, isAuthenticated, login, logout, register, };
 };
-
-export default AuthContextProvider;
 
 
 // Setting custom name for the context which is visible on react dev tools

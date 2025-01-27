@@ -25,7 +25,7 @@ function BasicLayout({ image, children }) {
           
           type: "external",
           route: "#",
-          label: "Download App",
+          label: "Book Appointment",
         }}
         dark
       />
